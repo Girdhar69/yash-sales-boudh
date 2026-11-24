@@ -1,6 +1,13 @@
 // scooters.js — Multi-brand EV showroom data layer
 // Every scooter carries a `brand` field so new brands can be added effortlessly.
 // Zero speed figures, no promotional clutter, no outdated battery chemistry.
+//
+// Colour variants: each scooter exposes a `colors` array of
+//   { name, hex, image }
+// so the UI can swap the photo when a customer picks a shade. Every `image`
+// path below matches a real file inside `images/` (verified).
+
+const SHOWROOM_WHATSAPP = "917008603371"; // +91 7008603371, digits only for wa.me
 
 const SCOOTER_BRANDS = [
   { id: "nij", name: "NIJ", brand: "NIJ", tagline: "Premium Electric Mobility" },
@@ -13,13 +20,15 @@ const SCOOTERS = [
     id: "nij-r14",
     brand: "NIJ",
     name: "NIJ R 14",
-    image: "./images/r14.png",
+    image: "./images/r14-red.png",
     variants: [
       { label: "48V 25Ah", volts: 48, ah: 25, range: "45-50 km", price: 65000 },
       { label: "48V 30Ah", volts: 48, ah: 30, range: "55-60 km", price: 70000 }
     ],
     defaultVariant: 0,
-    colors: ["Black", "White", "Blue", "Grey", "Maroon"],
+    colors: [
+      { name: "Red", hex: "#c0392b", image: "./images/r14-red.png" }
+    ],
     colorNote: null,
     brakes: "Front Disc / Rear Drum",
     tyres: "Front 90/90-12, Rear 90/90-10 Tubeless Alloy",
@@ -35,13 +44,18 @@ const SCOOTERS = [
     id: "nij-accelero",
     brand: "NIJ",
     name: "NIJ ACCELERO+",
-    image: "./images/accelero.png",
+    image: "./images/accelero-plus.png",
     variants: [
       { label: "48V 25Ah", volts: 48, ah: 25, range: "45-50 km", price: 68000 },
       { label: "48V 30Ah", volts: 48, ah: 30, range: "55-60 km", price: 72000 }
     ],
     defaultVariant: 0,
-    colors: ["Matte Green", "Blue", "Red", "Purple"],
+    colors: [
+      { name: "Matte Green", hex: "#2e7d32", image: "./images/accelero-purple.png" },
+      { name: "Blue", hex: "#1d5ed5", image: "./images/accelero+-blue.png" },
+      { name: "Red", hex: "#c0392b", image: "./images/accelero-red.png" },
+      { name: "Maroon", hex: "#7a1c2e", image: "./images/accelero-plus.png" }
+    ],
     colorNote: null,
     brakes: "Front Disc / Rear Drum",
     tyres: "Front 90/90-12, Rear 90/90-10 Tubeless Alloy",
@@ -57,13 +71,19 @@ const SCOOTERS = [
     id: "nij-n9",
     brand: "NIJ",
     name: "NIJ N9",
-    image: "./images/n9.png",
+    image: "./images/n9-black.png",
     variants: [
       { label: "60V 25Ah", volts: 60, ah: 25, range: "60-70 km", price: 75000 },
       { label: "60V 30Ah", volts: 60, ah: 30, range: "70-80 km", price: 80000 }
     ],
     defaultVariant: 0,
-    colors: ["Navy Blue", "Red", "Silver", "Black", "Deep Green", "Blue"],
+    colors: [
+      { name: "Black", hex: "#1a1a1a", image: "./images/n9-black.png" },
+      { name: "Deep Green", hex: "#0e5a3a", image: "./images/n9-green.png" },
+      { name: "Navy Blue", hex: "#14264d", image: "./images/n9-navy.png" },
+      { name: "Red", hex: "#c0392b", image: "./images/n9-red.png" },
+      { name: "Silver", hex: "#b9c0c9", image: "./images/n9-silver.png" }
+    ],
     colorNote: null,
     brakes: "Double Disc (Front & Rear Disc)",
     tyres: "Front 90/90-12, Rear 90/90-12 Tubeless Alloy",
@@ -79,13 +99,19 @@ const SCOOTERS = [
     id: "nij-captiva",
     brand: "NIJ",
     name: "NIJ CAPTIVA 5G",
-    image: "./images/captiva-5g.png",
+    image: "./images/captiva-5g-black.png",
     variants: [
       { label: "60V 25Ah", volts: 60, ah: 25, range: "60-70 km", price: 80000 },
       { label: "60V 35Ah", volts: 60, ah: 35, range: "80-90 km", price: 85000 }
     ],
     defaultVariant: 0,
-    colors: ["Black", "Blue", "White", "Grey", "Green"],
+    colors: [
+      { name: "Black", hex: "#1a1a1a", image: "./images/captiva-5g-black.png" },
+      { name: "Blue", hex: "#1d5ed5", image: "./images/captiva-5g-blue.png" },
+      { name: "Green", hex: "#2e9e4a", image: "./images/captiva-5g-green.png" },
+      { name: "Silver", hex: "#b9c0c9", image: "./images/captiva-5g-silver.png" },
+      { name: "White", hex: "#f5f5f5", image: "./images/captiva-5g-white.png" }
+    ],
     colorNote: null,
     brakes: "Double Disc (Front & Rear Disc)",
     tyres: "Front 90/90-12, Rear 90/90-12 Tubeless Alloy",
@@ -101,14 +127,16 @@ const SCOOTERS = [
     id: "nij-ae4",
     brand: "NIJ",
     name: "NIJ AE4",
-    image: "./images/ae4.png",
+    image: "./images/ae4-white.png",
     variants: [
       { label: "60V 35Ah", volts: 60, ah: 35, range: "80-90 km", price: 88000 },
       { label: "60V 45Ah", volts: 60, ah: 45, range: "100-120 km", price: 98000 }
     ],
     defaultVariant: 0,
-    colors: ["Black", "Grey", "White", "Red", "Green"],
-    colorNote: "All Dual Tone",
+    colors: [
+      { name: "White", hex: "#f5f5f5", image: "./images/ae4-white.png" }
+    ],
+    colorNote: "Dual Tone",
     brakes: "Double Disc (Front & Rear Disc)",
     tyres: "Front 90/90-12, Rear 90/90-12 Tubeless Alloy",
     kerbWeight: "92 kg",
@@ -123,14 +151,18 @@ const SCOOTERS = [
     id: "nij-iq",
     brand: "NIJ",
     name: "NIJ IQ",
-    image: "./images/iq.png",
+    image: "./images/iq-maroon.png",
     variants: [
       { label: "60V 25Ah", volts: 60, ah: 25, range: "60-70 km", price: 85000 },
       { label: "60V 35Ah", volts: 60, ah: 35, range: "80-90 km", price: 95000 }
     ],
     defaultVariant: 0,
-    colors: ["Black", "Blue", "White", "Maroon", "Bronze"],
-    colorNote: "All Dual Tone",
+    colors: [
+      { name: "Maroon", hex: "#7b1f2e", image: "./images/iq-maroon.png" },
+      { name: "White", hex: "#f5f5f5", image: "./images/iq-white.png" },
+      { name: "Black", hex: "#1a1a1a", image: "./images/iq-black.png" }
+    ],
+    colorNote: "Dual Tone",
     brakes: "Double Disc (Front & Rear Disc)",
     tyres: "Front 90/90-12, Rear 90/90-12 Tubeless Alloy",
     kerbWeight: "86 kg",
@@ -145,14 +177,19 @@ const SCOOTERS = [
     id: "nij-lc",
     brand: "NIJ",
     name: "NIJ LC",
-    image: "./images/lc.png",
+    image: "./images/lc-black.png",
     variants: [
       { label: "60V 25Ah", volts: 60, ah: 25, range: "60-70 km", price: 80000 },
       { label: "60V 35Ah", volts: 60, ah: 35, range: "80-90 km", price: 90000 }
     ],
     defaultVariant: 0,
-    colors: ["Black", "Blue", "White", "Maroon"],
-    colorNote: "All Dual Tone",
+    colors: [
+      { name: "Black", hex: "#1a1a1a", image: "./images/lc-black.png" },
+      { name: "Blue", hex: "#1d5ed5", image: "./images/lc-blue.png" },
+      { name: "Maroon", hex: "#7b1f2e", image: "./images/lc-maroon.png" },
+      { name: "White", hex: "#f5f5f5", image: "./images/lc-white.png" }
+    ],
+    colorNote: "Dual Tone",
     brakes: "Double Disc (Front & Rear Disc)",
     tyres: "Front 90/90-12, Rear 90/90-12 Tubeless Alloy",
     kerbWeight: "88 kg",
@@ -173,7 +210,9 @@ const SCOOTERS = [
       { label: "60V 45Ah", volts: 60, ah: 45, range: "80-90 km", price: 115000 }
     ],
     defaultVariant: 0,
-    colors: ["Black"],
+    colors: [
+      { name: "Black", hex: "#1a1a1a", image: "./images/loader.png" }
+    ],
     colorNote: null,
     brakes: "Double Disc (Front & Rear Disc)",
     tyres: "Front 90/90-12, Rear 90/90-12 Reinforced Tubeless",

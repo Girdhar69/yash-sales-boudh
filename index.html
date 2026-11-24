@@ -223,7 +223,7 @@
     <button class="modal-close" id="modalClose" aria-label="Close">&#215;</button>
     <div class="modal-inner">
       <div class="modal-head">
-        <img id="modalImg" src="" alt="">
+        <img id="modalImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
         <div class="modal-info">
           <h2 id="modalName">NIJ Model</h2>
           <p id="modalBrandTag" class="muted">NIJ &bull; Electric Scooter</p>
@@ -232,7 +232,10 @@
       </div>
 
       <div class="modal-body">
-        <div class="color-dots" id="modalColors"></div>
+        <div class="color-picker modal-colors">
+          <div class="color-dots" id="modalColors" role="group" aria-label="Colour options"></div>
+          <span class="color-name" id="modalColorName">Colour</span>
+        </div>
         <div class="spec-grid">
           <div class="spec-row"><span class="k">Live Variant</span><span class="v" id="modalLiveVariant">48V 25Ah</span></div>
           <div class="spec-row"><span class="k">Range</span><span class="v" id="modalLiveRange">45-50 km</span></div>
@@ -255,7 +258,8 @@
 
       <div class="modal-foot">
         <p class="muted">Visit us: Bypass Road, Bridge Chowk, Boudh, Odisha &bull; 📞 7008603371 / 8144744573</p>
-        <button class="btn-primary" id="modalEnquire">Enquire Now</button>
+        <a class="btn-primary" id="modalWa" href="#" target="_blank" rel="noopener">Enquire on WhatsApp</a>
+        <button class="btn-ghost" id="modalEnquire">Visit Showroom</button>
       </div>
     </div>
   </div>
@@ -361,9 +365,89 @@
       'Green': '#2e9e4a', 'Bronze': '#8f6b3c'
     };
 
-    function colorDotHtml(color, note) {
-      var bg = COLOR_HEX[color] || '#666';
-      return '<div class="color-dot" style="background:' + bg + '" data-color="' + escapeHtml(color) + '" title="' + escapeHtml(color) + (note ? ' (' + note + ')' : '') + '"><span class="dot-label">' + escapeHtml(color) + '</span></div>';
+    // Normalise a scooter's colours: supports both the new
+    // { name, hex, image } objects and plain colour-name strings.
+    function colorsOf(scooter) {
+      var list = (scooter.colors && scooter.colors.length)
+        ? scooter.colors
+        : [{ name: 'Standard', hex: '#c9ced6', image: scooter.image }];
+      return list.map(function (c) {
+        if (typeof c === 'string') {
+          return { name: c, hex: COLOR_HEX[c] || '#666666', image: scooter.image };
+        }
+        return {
+          name: c.name,
+          hex: c.hex || COLOR_HEX[c.name] || '#666666',
+          image: c.image || scooter.image
+        };
+      });
+    }
+
+    // Light swatches (white / silver) need a grey rim to stay visible on white.
+    function isLightColor(hex) {
+      var h = String(hex || '').replace('#', '');
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      if (h.length !== 6) return false;
+      var r = parseInt(h.slice(0, 2), 16);
+      var g = parseInt(h.slice(2, 4), 16);
+      var b = parseInt(h.slice(4, 6), 16);
+      if (isNaN(r) || isNaN(g) || isNaN(b)) return false;
+      // Silver (#b9c0c9) sits around 0.75, so 0.70 keeps white + silver rimmed
+      // without giving mid-greys a rim they do not need.
+      return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.70;
+    }
+
+    function colorDotHtml(color, note, index, selected) {
+      var cls = 'color-dot' + (isLightColor(color.hex) ? ' is-light' : '') + (selected ? ' active' : '');
+      var label = escapeHtml(color.name) + (note ? ' (' + escapeHtml(note) + ')' : '');
+      return '<button type="button" class="' + cls + '"' +
+        ' style="background:' + escapeHtml(color.hex) + '"' +
+        ' data-color-index="' + index + '"' +
+        ' aria-pressed="' + (selected ? 'true' : 'false') + '"' +
+        ' aria-label="' + label + '" title="' + label + '"></button>';
+    }
+
+    function colorDotsHtml(colors, note, selectedIndex) {
+      selectedIndex = selectedIndex || 0;
+      return colors.map(function (c, i) {
+        return colorDotHtml(c, note, i, i === selectedIndex);
+      }).join('');
+    }
+
+    function colorPickerHtml(colors, note, label) {
+      return '<div class="color-picker">' +
+        '<div class="color-dots" role="group" aria-label="' + escapeHtml(label) + '">' +
+          colorDotsHtml(colors, note, 0) +
+        '</div>' +
+        '<span class="color-name" data-color-name>' + escapeHtml(colors[0].name) + '</span>' +
+      '</div>';
+    }
+
+    // Smoothly cross-fade a scooter photo to another colour image.
+    function swapImage(img, src) {
+      if (!img || !src || img.getAttribute('src') === src) return;
+      var preload = new Image();
+      preload.onload = function () {
+        img.classList.add('is-swapping');
+        window.requestAnimationFrame(function () {
+          img.src = src;
+          window.requestAnimationFrame(function () { img.classList.remove('is-swapping'); });
+        });
+      };
+      // Still swap on error, so a bad path is visible instead of silently ignored.
+      preload.onerror = function () {
+        img.classList.remove('is-swapping');
+        img.src = src;
+      };
+      preload.src = src;
+    }
+
+    function whatsappUrl(scooter, variant, colorName) {
+      var number = (typeof SHOWROOM_WHATSAPP !== 'undefined') ? SHOWROOM_WHATSAPP : '917008603371';
+      var msg = 'Hello Yash Sales & Service, I am interested in the ' + scooter.name +
+        ' (' + variant.label + ', ' + variant.range + ')' +
+        ' in ' + colorName + '. Please share the price and availability.';
+      return 'https://wa.me/' + number + '?text=' + encodeURIComponent(msg);
     }
 
     /* ---------- Render cards ---------- */
@@ -375,19 +459,20 @@
       var list = brandId === 'all' ? allScooters : allScooters.filter(function (s) { return s.brand === brandId; });
 
       list.forEach(function (scooter) {
-        var v = scooter.variants[scooter.defaultVariant];
+        var colors = colorsOf(scooter);
+        var selectedColor = 0;
+        var selectedVariant = scooter.defaultVariant;
+        var v = scooter.variants[selectedVariant];
         var card = document.createElement('article');
         card.className = 'scoot-card';
 
         var variantsHtml = scooter.variants.map(function (vv, i) {
-          return '<button class="variant-btn' + (i === scooter.defaultVariant ? ' active' : '') + '" data-idx="' + i + '">' + escapeHtml(vv.label) + '</button>';
+          return '<button type="button" class="variant-btn' + (i === selectedVariant ? ' active' : '') + '" data-idx="' + i + '">' + escapeHtml(vv.label) + '</button>';
         }).join('');
-
-        var colorsHtml = scooter.colors.map(function (c) { return colorDotHtml(c, scooter.colorNote); }).join('');
 
         card.innerHTML =
           '<div class="card-img-wrap">' +
-            '<img src="' + escapeHtml(scooter.image) + '" alt="' + escapeHtml(scooter.name) + '" class="card-img">' +
+            '<img src="' + escapeHtml(colors[0].image) + '" alt="' + escapeHtml(scooter.name + ' in ' + colors[0].name) + '" class="card-img">' +
           '</div>' +
           '<div class="card-body">' +
             '<h3 class="card-name">' + escapeHtml(scooter.name) + '</h3>' +
@@ -396,7 +481,7 @@
               '<span class="live-price">' + formatINR(v.price) + '</span>' +
             '</div>' +
             '<div class="variant-selector">' + variantsHtml + '</div>' +
-            '<div class="color-dots">' + colorsHtml + '</div>' +
+            colorPickerHtml(colors, scooter.colorNote, scooter.name + ' colour options') +
             (scooter.colorNote ? '<p class="color-note">' + escapeHtml(scooter.colorNote) + '</p>' : '') +
             '<div class="card-specs">' +
               '<div><span class="k">Motor</span><span class="v">' + escapeHtml(scooter.motor) + '</span></div>' +
@@ -404,29 +489,58 @@
               '<div><span class="k">Kerb Wt.</span><span class="v">' + escapeHtml(scooter.kerbWeight) + '</span></div>' +
               '<div><span class="k">Clearance</span><span class="v">' + escapeHtml(scooter.groundClearance) + '</span></div>' +
             '</div>' +
-            '<button class="btn-spec" data-id="' + scooter.id + '">View Full Specs</button>' +
+            '<div class="card-actions">' +
+              '<button type="button" class="btn-spec" data-id="' + escapeHtml(scooter.id) + '">View Full Specs</button>' +
+              '<a class="btn-wa" href="' + escapeHtml(whatsappUrl(scooter, v, colors[0].name)) + '" target="_blank" rel="noopener">' +
+                '<svg class="wa-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>' +
+                'WhatsApp' +
+              '</a>' +
+            '</div>' +
           '</div>';
 
-        // Variant selector: update Range & Price live
+        var imgEl = card.querySelector('.card-img');
+        var colorNameEl = card.querySelector('[data-color-name]');
+        var dots = $$('.color-dot', card);
         var rangeEl = card.querySelector('.live-range');
         var priceEl = card.querySelector('.live-price');
+        var waEl = card.querySelector('.btn-wa');
+
+        function updateWa() {
+          waEl.href = whatsappUrl(scooter, scooter.variants[selectedVariant], colors[selectedColor].name);
+        }
+
+        // Variant selector: update Range & Price live
         $$('.variant-btn', card).forEach(function (btn) {
           btn.addEventListener('click', function () {
             $$('.variant-btn', card).forEach(function (b) { b.classList.remove('active'); });
             btn.classList.add('active');
-            var sel = scooter.variants[parseInt(btn.dataset.idx, 10)];
+            selectedVariant = parseInt(btn.dataset.idx, 10);
+            var sel = scooter.variants[selectedVariant];
             rangeEl.textContent = sel.range;
             priceEl.textContent = formatINR(sel.price);
+            updateWa();
           });
         });
 
-        // Color dots glow
-        $$('.color-dot', card).forEach(function (dot) {
-          dot.addEventListener('mouseenter', function () {
-            $$('.color-dot', card).forEach(function (d) { d.classList.remove('active'); });
-            dot.classList.add('active');
+        // Colour dots: select a shade, cross-fade the photo, keep label in sync
+        dots.forEach(function (dot) {
+          dot.addEventListener('click', function () {
+            var idx = parseInt(dot.dataset.colorIndex, 10);
+            if (isNaN(idx) || idx === selectedColor || !colors[idx]) return;
+            selectedColor = idx;
+            dots.forEach(function (d, i) {
+              var on = i === idx;
+              d.classList.toggle('active', on);
+              d.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+            colorNameEl.textContent = colors[idx].name;
+            imgEl.alt = scooter.name + ' in ' + colors[idx].name;
+            swapImage(imgEl, colors[idx].image);
+            updateWa();
           });
         });
+
+        updateWa();
 
         card.querySelector('.btn-spec').addEventListener('click', function () { openSpecModal(scooter.id); });
 
@@ -446,16 +560,20 @@
       }
       if (!scooter) return;
 
+      var colors = colorsOf(scooter);
+      var selectedColor = 0;
       var current = scooter.defaultVariant;
 
-      $('#modalImg').src = scooter.image;
-      $('#modalImg').alt = scooter.name;
+      var modalImg = $('#modalImg');
+      modalImg.classList.remove('is-swapping');
+      modalImg.src = colors[0].image;
+      modalImg.alt = scooter.name + ' in ' + colors[0].name;
       $('#modalName').textContent = scooter.name;
       $('#modalBrandTag').textContent = scooter.brand + ' • Electric Scooter';
 
       var vs = $('#modalVariantSel');
       vs.innerHTML = scooter.variants.map(function (vv, i) {
-        return '<button class="variant-btn' + (i === current ? ' active' : '') + '" data-idx="' + i + '">' + escapeHtml(vv.label) + '</button>';
+        return '<button type="button" class="variant-btn' + (i === current ? ' active' : '') + '" data-idx="' + i + '">' + escapeHtml(vv.label) + '</button>';
       }).join('');
 
       function renderLive() {
@@ -464,6 +582,8 @@
         $('#modalLiveRange').textContent = v.range;
         $('#modalLivePrice').textContent = formatINR(v.price);
         $('#modalBattery').textContent = v.volts + 'V ' + v.ah + 'Ah';
+        var wa = $('#modalWa');
+        if (wa) wa.href = whatsappUrl(scooter, v, colors[selectedColor].name);
       }
 
       $$('.variant-btn', vs).forEach(function (btn) {
@@ -476,11 +596,23 @@
       });
 
       var cd = $('#modalColors');
-      cd.innerHTML = scooter.colors.map(function (c) { return colorDotHtml(c, scooter.colorNote); }).join('');
+      cd.innerHTML = colorDotsHtml(colors, scooter.colorNote, 0);
+      var modalColorName = $('#modalColorName');
+      modalColorName.textContent = colors[0].name;
       $$('.color-dot', cd).forEach(function (dot) {
-        dot.addEventListener('mouseenter', function () {
-          $$('.color-dot', cd).forEach(function (d) { d.classList.remove('active'); });
-          dot.classList.add('active');
+        dot.addEventListener('click', function () {
+          var idx = parseInt(dot.dataset.colorIndex, 10);
+          if (isNaN(idx) || idx === selectedColor || !colors[idx]) return;
+          selectedColor = idx;
+          $$('.color-dot', cd).forEach(function (d, i) {
+            var on = i === idx;
+            d.classList.toggle('active', on);
+            d.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
+          modalColorName.textContent = colors[idx].name;
+          modalImg.alt = scooter.name + ' in ' + colors[idx].name;
+          swapImage(modalImg, colors[idx].image);
+          renderLive();
         });
       });
 
