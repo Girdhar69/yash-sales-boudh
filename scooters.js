@@ -27,7 +27,13 @@ const SCOOTERS = [
     ],
     defaultVariant: 0,
     colors: [
-      { name: "Red", hex: "#c0392b", image: "./images/r14-red.png" }
+      { name: "Red", hex: "#c0392b", image: "./images/r14-red.png" },
+      { name: "Black", hex: "#1a1a1a", image: "./images/r14-black.jpg" },
+      { name: "Blue", hex: "#1d5ed5", image: "./images/r14-blue.jpg" },
+      { name: "Green", hex: "#2e9e4a", image: "./images/r14-green.jpg" },
+      { name: "Maroon", hex: "#7b1f2e", image: "./images/r14-maroon.jpg" },
+      { name: "Gray", hex: "#8a8f98", image: "./images/r14-gray.jpg" },
+      { name: "White", hex: "#f5f5f5", image: "./images/r14-white.jpg" }
     ],
     colorNote: null,
     brakes: "Front Disc / Rear Drum",
@@ -79,6 +85,7 @@ const SCOOTERS = [
     defaultVariant: 0,
     colors: [
       { name: "Black", hex: "#1a1a1a", image: "./images/n9-black.png" },
+      { name: "Blue", hex: "#1d5ed5", image: "./images/n9-blue.jpg" },
       { name: "Deep Green", hex: "#0e5a3a", image: "./images/n9-green.png" },
       { name: "Navy Blue", hex: "#14264d", image: "./images/n9-navy.png" },
       { name: "Red", hex: "#c0392b", image: "./images/n9-red.png" },
@@ -134,7 +141,11 @@ const SCOOTERS = [
     ],
     defaultVariant: 0,
     colors: [
-      { name: "White", hex: "#f5f5f5", image: "./images/ae4-white.png" }
+      { name: "White", hex: "#f5f5f5", image: "./images/ae4-white.png" },
+      { name: "Black", hex: "#1a1a1a", image: "./images/ae4-black.jpg" },
+      { name: "Red", hex: "#c0392b", image: "./images/ae4-red.jpg" },
+      { name: "Green", hex: "#2e9e4a", image: "./images/ae4-green.jpg" },
+      { name: "Gray", hex: "#8a8f98", image: "./images/ae4-gray.jpg" }
     ],
     colorNote: "Dual Tone",
     brakes: "Double Disc (Front & Rear Disc)",
